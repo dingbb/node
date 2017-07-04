@@ -1,0 +1,57 @@
+场景：开发要求把生产数据库a表清空，把测试数据库a表的数据导过来。导致生产环境数据丢失。
+由于生产环境。这张表的写入还是比较频繁的。所以只能将RDS for MySQL 备份文件恢复到自建数据库
+具体步骤如下：
+1.准备
+a.下载阿里云数据库备份
+b.现在安装percona-Xtrabackup 
+https://www.percona.com/doc/percona-xtrabackup/LATEST/installation/yum_repo.html
+#RDS MySQL使用开源软件percona-Xtrabackup对MySQL数据库进行备份.需要下载该软件，然后使用该软件进行恢复。
+c.下载rds_backup_extract.sh文件
+http://oss.aliyuncs.com/aliyunecs/rds_backup_extract.sh?spm=5176.100239.blogcont69812.15.3xmSU0&file=rds_backup_extract.sh
+#阿里云rds数据库备份专用解压文件
+2.解压备份文件
+sh rds_backup_extract.sh -f backup.tar.gz -C /var/lib/mysql
+3.恢复备份文件
+innobackupex --defaults-file=/var/lib/mysql/backup-my.cnf --apply-log /var/lib/mysql
+这一步最后如果看到类似如下输出，显示 completed OK，表示执行成功
+我这里遇到一个报错如下：
+xtrabackup:   innodb_log_file_size = 10616832
+xtrabackup: Starting InnoDB instance for recovery.
+xtrabackup: Using 104857600 bytes for buffer pool (set by --use-memory parameter)
+InnoDB: PUNCH HOLE support available
+InnoDB: Mutexes and rw_locks use GCC atomic builtins
+InnoDB: Uses event mutexes
+InnoDB: GCC builtin __atomic_thread_fence() is used for memory barrier
+InnoDB: Compressed tables use zlib 1.2.7
+InnoDB: Number of pools: 1
+InnoDB: Using CPU crc32 instructions
+InnoDB: Initializing buffer pool, total size = 100M, instances = 1, chunk size = 100M
+InnoDB: Completed initialization of buffer pool
+InnoDB: page_cleaner coordinator priority: -20
+InnoDB: Log file ./ib_logfile1 is of different size 50331648 bytes than other log files 10616832 bytes!
+InnoDB: Plugin initialization aborted with error Generic error
+xtrabackup: innodb_init(): Error occured.
+解决办法如下：
+在/etc/my.cnf中添加如下参数
+innodb_fast_shutdown=0
+innodb_log_file_size=5M
+然后
+# mv /var/lib/mysql/ib_logfile0 /var/lib/mysql/ib_logfile0_old
+# mv /var/lib/mysql/ib_logfile1 /var/lib/mysql/ib_logfile1_old
+#service mysqld start
+4.配置文件修改
+如何有版本冲突修改
+将解压文件backup-my.cnf中的innodb_fast_checksum、innodb_page_size 、innodb_log_block_size 注释掉
+5.修改文件属主，并检查文件所属为mysql用户
+chown -R mysql:mysql /var/lib/mysql
+6.启动并且登陆验证，启动前查看mysql进程是否还在
+mysqld_safe --defaults-file=/var/lib/mysql/backup-my.cnf --user=mysql --datadir=/var/lib/mysql &
+7.启动成功
+select表内存报错 MySQL Error: #1558
+解决办法：
+[root@server mysql]#mysql_upgrade
+8.迁移数据
+a.备份生产环境a表为a.bak
+b.导出自建库a表数据和表结构导入到生产环境
+c.找出a.bak新增数据更新到恢复后的a表中
+
