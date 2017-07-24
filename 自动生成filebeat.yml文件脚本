@@ -1,0 +1,95 @@
+#encoding=utf-8
+#Auth:aice
+#Date:20161031
+#Version:2.0.0
+#Update:20161108
+##########################################
+#import ConfigParser
+import re
+import subprocess
+import yaml
+import os
+import paramiko
+import time
+#############################################
+conf_file_dir='/home/dingbb/yml3'
+file='/home/dingbb/3.txt'
+yml_file='/home/dingbb/ansible/app/filebeat.yml'
+#role_dir='/home/dingbb/ansible/app/roles'
+#############################################
+#############################################
+fp=open(file,'rb')
+def check_ip(line):
+   reip = re.compile(r'(?<![\.\d])(?:\d{1,3}\.){3}\d{1,3}(?![\.\d])')
+   for ip in reip.findall(line):
+       return 1
+   return 0
+
+host_list=[line.strip() for line in fp.readlines() if check_ip(line)]
+print host_list
+fp.close()
+fp=open(yml_file,'rb')
+x=yaml.load(fp)
+fp.close()
+#print x
+#print '--------------'
+#print x['filebeat.prospectors'][0]['multiline.pattern']
+#print x['filebeat.prospectors'][0]
+#print x['filebeat.prospectors'][0]['fields']['ip']
+#print x['filebeat.prospectors'][0]['fields']['alias']
+#print yaml.dump(x)
+def re_repalce(x):
+    p = re.compile("work/Catalina")
+    data = p.sub('logs/',x)
+    return data.strip('\n')
+
+def login_host(x):
+    ssh=paramiko.SSHClient()
+    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    privatekeyfile = os.path.expanduser('~/.ssh/id_rsa')
+    mykey = paramiko.RSAKey.from_private_key_file(privatekeyfile)
+    IP='%s' % x
+    ssh.connect('%s' % IP,username = 'root',pkey = mykey)
+    cmd='''find / -name Catalina -type d | grep -v '/opt' | grep "work"'''
+    stdin,stdout,stderr=ssh.exec_command(cmd)
+    cmd=stdout.readlines()
+    cmd_list=[]
+    for y in cmd:
+        cmd_list.append(re_repalce(y.decode('utf-8').encode('utf-8')))
+    ssh.close()
+    return cmd_list
+
+
+def config_file():
+    for ip in host_list:
+        cmd_list=login_host(ip)
+        config_file='%s/%s.yml' % (conf_file_dir,ip)
+        fp=open(config_file,'a')
+        fp.write('- input_type: log\n')
+        for tomcat_dir in cmd_list:
+            c4=x['filebeat.prospectors'][0]['fields']['ip']='%s' % ip
+            c3=x['filebeat.prospectors'][0]['fields']['alias']='%s' % tomcat_dir.split('/')[2]
+            c1=x['filebeat.prospectors'][0]['paths'][0]='%s*.txt' % tomcat_dir
+            c2=x['filebeat.prospectors'][0]['paths'][1]='%s*.log' % tomcat_dir
+            fp.write('  paths:\n')
+            fp.write("    - %s\n" % c1)
+            fp.write("    - %s\n" % c2)
+            fp.write('  encoding: utf-8\n')
+            fp.write("  multiline.pattern: %s\n" % x['filebeat.prospectors'][0]['multiline.pattern'])
+            fp.write('  multiline.negate: true\n')
+            fp.write('  multiline.match: after\n')
+            fp.write('  fields:\n')
+            fp.write('    ip: %s\n' % c4)
+            fp.write('    alias: %s\n' % c3)
+            fp.write('\n')
+            fp.write('\n')
+        fp.write('output.kafka:\n')
+        fp.write('  enabled: true\n')
+        fp.write('''  hosts: ["tzyj1:9092","tzyj2:9092","tzyj3:9092","tzyj4:9092","tzyj5:9092"]\n''')
+        fp.write('''  topic: "yunying-tomcat-filebeat-raw"\n''')
+        fp.close()
+
+
+
+
+config_file()
