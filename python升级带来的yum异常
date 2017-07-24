@@ -23,6 +23,12 @@ rm -rf /usr/bin/python
 ln -s /usr/local/bin/python3.5 /usr/bin/python
 python -V #然后版本是否安装成功
 ###################################################升级python造成yum异常解决办法###############
+$ yum 
+File "/usr/bin/yum", line 30 
+except KeyboardInterrupt, e: 
+                                         ^
+SyntaxError: invalid syntax
+解决办法:
 修改yum配置文件，将python版本指向以前的旧版本
 # vi /usr/bin/yum
 #!/usr/bin/python2.7
