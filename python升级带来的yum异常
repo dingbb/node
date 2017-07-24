@@ -1,0 +1,31 @@
+CentOS 7下安装Python3.5
+•安装python3.5可能使用的依赖
+yum install openssl-devel bzip2-devel expat-devel gdbm-devel readline-devel sqlite-devel
+•到python官网找到下载路径, 用wget下载
+wget https://www.python.org/ftp/python/3.5.1/Python-3.5.1.tgz
+•解压tgz包
+tar -zxvf Python-3.5.1.tgz
+•把python移到/usr/local下面
+mv Python-3.5.1 /usr/local
+•删除旧版本的python依赖
+ll /usr/bin | grep python
+rm -rf /usr/bin/python
+•进入python目录
+cd /usr/local/Python-3.5.1/
+•配置
+./configure
+•编译 make
+make
+•编译，安装
+make install
+•删除旧的软链接，创建新的软链接到最新的python
+rm -rf /usr/bin/python
+ln -s /usr/local/bin/python3.5 /usr/bin/python
+python -V #然后版本是否安装成功
+###################################################升级python造成yum异常解决办法###############
+修改yum配置文件，将python版本指向以前的旧版本
+# vi /usr/bin/yum
+#!/usr/bin/python2.7
+修改urlgrabber-ext-down文件，更改python版本
+# vi /usr/libexec/urlgrabber-ext-down
+#!/usr/bin/python2.7
