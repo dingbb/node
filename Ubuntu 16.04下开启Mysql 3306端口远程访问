@@ -1,0 +1,47 @@
+Ubuntu 16.04下开启Mysql 3306端口远程访问
+
+0. 前言
+
+之前一直是在centos上安装部署的mysql部署完成后。iptables开启3306就可以了。ubuntu有点不太一样。
+
+特意查看了我的Linux版本
+
+$ sudo lsb_release -a
+
+显示如下：
+
+Distributor ID: Ubuntu
+Description:    Ubuntu 16.04.1 LTS
+Release:        16.04
+Codename:       xenial
+ 
+
+1. 查看3306端口是否正常
+
+root@node1:~# netstat -an | grep 3306
+tcp        0      0 127.0.0.1:3306          0.0.0.0:*               LISTEN
+注意：现在的3306端口绑定的IP地址是本地的127.0.0.1
+
+ 
+
+2. 修改Mysql配置文件（注意路径，跟之前网上的很多版本位置都不一样）
+
+root@node1:~# vim /etc/mysql/mysql.conf.d/mysqld.cnf
+找到
+
+bind-address            = 127.0.0.1
+前面加#注释掉
+
+ 
+
+3. 重启Mysql
+
+root@node1:~# /etc/init.d/mysql restart
+[ ok ] Restarting mysql (via systemctl): mysql.service.
+
+ 
+
+4. 再次查看端口信息
+
+root@node1:~# netstat -an | grep 3306
+tcp6       0      0 :::3306                 :::*                    LISTEN
