@@ -1,0 +1,8 @@
+tomcat启动报错
+INFO: The APR based Apache Tomcat Native library which allows optimal performance in production environments was not found on the java.library.path: /usr/java/packages/lib/amd64:/usr/lib64:/lib64:/lib:/usr/lib
+
+环境 centos7+tomcat7+jdk7
+
+解决办法：
+
+yum install tomcat-native
