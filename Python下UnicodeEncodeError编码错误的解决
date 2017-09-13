@@ -1,0 +1,7 @@
+1.错误信息
+UnicodeEncodeError: 'ascii' codec can't encode characters in position 193-194: ordinal not in range(128) 
+2. 解决办法
+执行如下代码， 其将系统默认的编码格式统一为utf-8:
+import sys  
+reload(sys)  
+sys.setdefaultencoding('utf8') 
