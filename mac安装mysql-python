@@ -1,0 +1,51 @@
+
+1.安装过程中报错
+localhost:~ $ sudo pip install MySQL-python
+Password:
+The directory '/Users/dingbingbing/Library/Caches/pip/http' or its parent directory is not owned by the current user and the cache has been disabled. Please check the permissions and owner of that directory. If executing pip with sudo, you may want sudo's -H flag.
+The directory '/Users/dingbingbing/Library/Caches/pip' or its parent directory is not owned by the current user and caching wheels has been disabled. check the permissions and owner of that directory. If executing pip with sudo, you may want sudo's -H flag.
+Collecting MySQL-python
+  Downloading MySQL-python-1.2.5.zip (108kB)
+    100% |████████████████████████████████| 112kB 150kB/s 
+    Complete output from command python setup.py egg_info:
+    sh: mysql_config: command not found
+    Traceback (most recent call last):
+      File "<string>", line 1, in <module>
+      File "/private/tmp/pip-build-v239J5/MySQL-python/setup.py", line 17, in <module>
+        metadata, options = get_config()
+      File "setup_posix.py", line 43, in get_config
+        libs = mysql_config("libs_r")
+      File "setup_posix.py", line 25, in mysql_config
+        raise EnvironmentError("%s not found" % (mysql_config.path,))
+    EnvironmentError: mysql_config not found
+    
+    ----------------------------------------
+Command "python setup.py egg_info" failed with error code 1 in /private/tmp/pip-build-v239J5/MySQL-python/
+
+问题：mysql_config not found
+原因
+找不到mysql_config一般是由于通过lnmp.org或者其他方式安装mysql以后mysql_config是在/usr/local/mysql/bin/里面，
+这里面的文件不是在任意位置都可以访问的，而指令是将mysql_config链接到/usr/local/bin目录下
+
+解决方案：
+1.linux系统
+ln -s /usr/local/mysql/bin/mysql_config /usr/local/bin/mysql_config
+
+2.mac系统
+a.先把之前装的卸载干净：
+pip uninstall mysql-python
+
+b.安装mysql-connector-c
+brew uninstall mysql-connector-c
+安装过程报错
+Error: Failed to link all completions, docs and manpages:
+  Permission denied @ rb_file_s_symlink - (../../../Homebrew/completions/zsh/_brew, /usr/local/share/zsh/site-functions/_brew)
+/usr/local/Homebrew/Library/Homebrew/brew.rb:12:in `<main>': Homebrew must be run under Ruby 2.3! You're running 2.0.0. (RuntimeError)
+解决办法：brew install ruby@2.3
+
+c.
+
+
+
+
+
