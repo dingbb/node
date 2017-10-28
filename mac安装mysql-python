@@ -43,7 +43,8 @@ Error: Failed to link all completions, docs and manpages:
 /usr/local/Homebrew/Library/Homebrew/brew.rb:12:in `<main>': Homebrew must be run under Ruby 2.3! You're running 2.0.0. (RuntimeError)
 解决办法：brew install ruby@2.3
 
-c.
+c.安装mysql-python
+pip install mysql-python
 
 
 
