@@ -1,0 +1,5 @@
+解决办法xcode-select --install  # 单独安装CommandLineTools，不需要Xcode
+或者指定路径安装
+sudo xcode-select --switch /Library/Developer/CommandLineTools  # 指定路径
+
+
